@@ -82,7 +82,7 @@ const VoucherCreation = () => {
                         leadFormEnabled: false,
                         modified: nowAsIso(),
                         objectMap: {},
-                        paidBy: "",
+                        paidBy: "Singlife Philippines",
                         promoCodeLength: 6,
                         promoEntity: values?.promoEntity || "",
                         promoName: values?.promoName || "",
