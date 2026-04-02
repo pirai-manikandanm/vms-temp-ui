@@ -12,7 +12,7 @@ const InputField = ({
         type = "text",
         rows = 3,
         placeholder,
-        itemClassName = "",
+        itemClassName = "!w-[300px]",
         options = [],
         defaultValue,
         accept,
