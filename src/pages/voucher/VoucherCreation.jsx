@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from "react";
-import { Form, Button, Modal, Divider } from "antd";
+import { Form, Button, Modal, Divider, notification } from "antd";
 import dayjs from "dayjs";
 import InputField from "../../component/form/InputField";
 import { useLocation } from "react-router-dom";
-import { CLASSIFICATION_TYPE, ELLIGIBLE_PRODUCT_CODE, PARTNERS_OPTIONS, PROMO_REWARD_TYPE, PROMO_TYPE, ASSIGNMENT_EXPLICITY_TYPE, VOUCHER_TYPE, VOUCHER_CREATION_TYPE, VOUCHER_FORM_PREFILL_VALUES } from "../../common/constant";
+import { CLASSIFICATION_TYPE, ELLIGIBLE_PRODUCT_CODE, PARTNERS_OPTIONS, PROMO_REWARD_TYPE, PROMO_TYPE, ASSIGNMENT_EXPLICITY_TYPE, VOUCHER_TYPE, VOUCHER_CREATION_TYPE, VOUCHER_FORM_PREFILL_VALUES, DISPLAY_TAGS, PARTNER_OPTIONS } from "../../common/constant";
+import downloadTemplate from "../../common/downloadExcel";
+import moment from "moment";
+import { FaDeleteLeft } from "react-icons/fa6";
 
 const VoucherCreation = () => {
 
@@ -15,9 +18,14 @@ const VoucherCreation = () => {
                 options: [],
         });
 
-        const [selectedVoucherType, setSelectedVoucherType] = useState("");
+        const [selectedVoucherType, setSelectedVoucherType] = useState(VOUCHER_TYPE?.[0]?.value);
+        const [selectedUsageType, setSelectedUsageType] = useState("");
+
         const [selectedPromoType, setSelectedPromoType] = useState(PROMO_TYPE?.[0]?.value);
         const [isJsonPreviewOpen, setIsJsonPreviewOpen] = useState(false);
+
+        const [customerDetails, setCustomerDetails] = useState(null);
+
 
         const [form] = Form.useForm();
 
@@ -51,7 +59,8 @@ const VoucherCreation = () => {
                         voucherType: VOUCHER_TYPE?.[0]?.value,
                 });
                 setSelectedPromoType(PROMO_TYPE?.[0]?.value);
-                setSelectedVoucherType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
+                setSelectedUsageType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
+                setSelectedVoucherType(VOUCHER_TYPE?.[0]?.value);
         }, [location?.state?.type, form]);
 
         const buildVoucherJson = (values) => {
@@ -93,6 +102,7 @@ const VoucherCreation = () => {
                         type: values?.type || "",
                         updatedDate: todayAsDate(),
                         seriesCode: values?.seriesCode || "",
+                        display_tags: DISPLAY_TAGS.includes(values?.type),
                         voucherConfig: {
                                 amount: Number(values?.amount || 0),
                                 assignmentExplicity: values?.assignmentExplicity || "",
@@ -139,7 +149,6 @@ const VoucherCreation = () => {
         const handleFillForm = () => {
                 const defaultPromoEntity = voucherCreationType?.defaultValue || voucherCreationType?.options?.[0]?.value || "";
                 const nextPromoType = PROMO_TYPE?.[0]?.value;
-                const nextAssignmentType = VOUCHER_FORM_PREFILL_VALUES.assignmentExplicity || ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value;
                 const nextValues = {
                         ...VOUCHER_FORM_PREFILL_VALUES,
                         promoEntity: defaultPromoEntity,
@@ -149,12 +158,58 @@ const VoucherCreation = () => {
                         endDate: dayjs(VOUCHER_FORM_PREFILL_VALUES.endDate),
                         voucherStartDate: dayjs(VOUCHER_FORM_PREFILL_VALUES.voucherStartDate),
                         voucherEndDate: dayjs(VOUCHER_FORM_PREFILL_VALUES.voucherEndDate),
+                        partner: PARTNER_OPTIONS?.[0]?.value,
                 };
 
                 form.setFieldsValue(nextValues);
                 setSelectedPromoType(nextPromoType);
-                setSelectedVoucherType(nextAssignmentType);
+                setSelectedVoucherType(VOUCHER_TYPE?.[0]?.value);
+                setSelectedUsageType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
         };
+
+        const validatePartnerAndPromoCode = () => {
+                const { partner, promoCode } = form.getFieldsValue(["partner", 'promoCode']);
+                let fileName = `${partner}_${promoCode}_EmployeeList_${moment().format('DDMMYYYY')}`;
+                if (!partner || !promoCode) {
+
+                        notification.error({
+                                message: "Please check both the partner and promo code inputs",
+                        });
+                        return { success: false, fileName: null };
+                }
+                return { success: true, fileName: fileName };
+        }
+
+        const handleTrigerDownloadTemplate = () => {
+
+                const { fileName, success } = validatePartnerAndPromoCode();
+
+                if (success) {
+                        downloadTemplate(fileName);
+                }
+
+        }
+
+        const handleUploadCustomerDetails = (value) => {
+
+
+                if (value?.file?.status === 'error') {
+                        const { fileName, success } = validatePartnerAndPromoCode();
+
+                        if (success) {
+                                console.log(value?.file.name, fileName)
+                                if (value?.file.name !== `${fileName}.xlsx`) {
+                                        notification.error({
+                                                message: `Please upload file with the correct name expected : ${fileName}`,
+                                        });
+                                        return;
+                                }
+                        }
+                        setCustomerDetails(fileName);
+                }
+
+
+        }
 
         return (
                 <>
@@ -214,6 +269,18 @@ const VoucherCreation = () => {
                                                                         rules={[{ required: true, message: "Please enter the promo name" }]}
                                                                 />
                                                                 <InputField
+                                                                        type="select"
+                                                                        label="Partner"
+                                                                        name="partner"
+                                                                        options={PARTNER_OPTIONS}
+                                                                        rules={[{ required: true, message: "Please select the partner" }]}
+                                                                />
+                                                                <InputField
+                                                                        label="Promo Code"
+                                                                        name="promoCode"
+                                                                        rules={[{ required: true, message: "Please enter the promo code" }]}
+                                                                />
+                                                                <InputField
                                                                         label="Type"
                                                                         name="type"
                                                                         type="select"
@@ -224,11 +291,14 @@ const VoucherCreation = () => {
                                                                         onChange={(value) => { handlePromoTypeChange(value) }}
                                                                         rules={[{ required: true, message: "Please enter the promo reward type" }]}
                                                                 />
-                                                                <InputField
-                                                                        label="Promo Code"
-                                                                        name="promoCode"
-                                                                        rules={[{ required: true, message: "Please enter the promo code" }]}
-                                                                />
+                                                                {DISPLAY_TAGS.includes(selectedPromoType) && (
+                                                                        <InputField
+                                                                                label="Event Key"
+                                                                                name="eventKey"
+                                                                                rules={[{ required: true, message: "Please enter the event key" }]}
+                                                                        />
+                                                                )}
+
                                                                 <InputField
                                                                         type="date"
                                                                         label="Start Date"
@@ -241,11 +311,7 @@ const VoucherCreation = () => {
                                                                         name="endDate"
                                                                         rules={[{ required: true, message: "Please enter the end date" }]}
                                                                 />
-                                                                <InputField
-                                                                        label="Event Key"
-                                                                        name="eventKey"
-                                                                // rules={[{ required: true, message: "Please enter the event key" }]}
-                                                                />
+
                                                                 <InputField
                                                                         label="Promo Reward Type"
                                                                         name="promoRewardType"
@@ -291,16 +357,7 @@ const VoucherCreation = () => {
                                                                 Voucher Configuration
                                                         </h2>
                                                         <div className="flex flex-wrap gap-x-4">
-                                                                <InputField
-                                                                        label="Voucher Code"
-                                                                        name="voucherCode"
-                                                                        rules={[{ required: true, message: "Please enter the voucher code" }]}
-                                                                />
-                                                                <InputField
-                                                                        label="Voucher Name"
-                                                                        name="voucherName"
-                                                                        rules={[{ required: true, message: "Please enter the voucher name" }]}
-                                                                />
+
                                                                 <InputField
                                                                         type="select"
                                                                         label="assignmentExplicity"
@@ -308,18 +365,27 @@ const VoucherCreation = () => {
                                                                         defaultValue={ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value}
                                                                         options={ASSIGNMENT_EXPLICITY_TYPE}
                                                                         getValue={true}
-                                                                        onChange={(value) => { setSelectedVoucherType(value) }}
+                                                                        onChange={(value) => { setSelectedUsageType(value) }}
                                                                         rules={[{ required: true, message: "Please select the assignmentExplicity" }]}
                                                                 />
-                                                                {ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value === selectedVoucherType && (
+                                                                {ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value === selectedUsageType && (
                                                                         <>
-                                                                                <InputField
+                                                                                {customerDetails ? (
+                                                                                        <div className="flex items-center gap-2">
+                                                                                                <h1>{customerDetails} </h1><FaDeleteLeft className="cursor-pointer text-red-500" onClick={() => setCustomerDetails(null)} />
+
+                                                                                        </div>
+                                                                                ) : <InputField
                                                                                         type="upload"
+                                                                                        handleUploadCustomerDetails={(value) => handleUploadCustomerDetails(value)}
                                                                                         label="Upload Customer Details Excel file"
                                                                                         name="customerDetailsExcelFile"
                                                                                         accept=".xlsx"
+                                                                                        downloadTemplate={() => handleTrigerDownloadTemplate()}
                                                                                         rules={[{ required: true, message: "Please upload the customer details excel file" }]}
-                                                                                />
+                                                                                />}
+
+
                                                                         </>
                                                                 )}
                                                                 <InputField
@@ -328,20 +394,22 @@ const VoucherCreation = () => {
                                                                         name="voucherType"
                                                                         defaultValue={VOUCHER_TYPE?.[0]?.value}
                                                                         options={VOUCHER_TYPE}
+                                                                        getValue={true}
+                                                                        value={selectedVoucherType}
+                                                                        onChange={(value) => { setSelectedVoucherType(value) }}
                                                                         rules={[{ required: true, message: "Please select the voucher type" }]}
                                                                 />
-                                                                <InputField
-                                                                        type="date"
-                                                                        label="VoucherStart Date"
-                                                                        name="voucherStartDate"
-                                                                        rules={[{ required: true, message: "Please enter the voucher start date" }]}
-                                                                />
-                                                                <InputField
-                                                                        type="date"
-                                                                        label="Voucher End Date"
-                                                                        name="voucherEndDate"
-                                                                        rules={[{ required: true, message: "Please enter the voucher end date" }]}
-                                                                />
+                                                                {VOUCHER_TYPE?.[0]?.value === selectedVoucherType && (
+                                                                        <InputField
+                                                                                type="select"
+                                                                                label="Elligible Product Code"
+                                                                                name="eligibleProductCode"
+                                                                                multiple={true}
+                                                                                defaultValue={ELLIGIBLE_PRODUCT_CODE?.[0]?.value}
+                                                                                options={ELLIGIBLE_PRODUCT_CODE}
+                                                                                rules={[{ required: true, message: "Please select the eligible product code" }]}
+                                                                        />
+                                                                )}
                                                                 <InputField
                                                                         label="Amount"
                                                                         name="amount"
@@ -365,17 +433,7 @@ const VoucherCreation = () => {
                                                                         name="redeemMaxLimit"
                                                                         rules={[{ required: true, message: "Please enter the redeem max limit" }]} type="number"
                                                                 />
-                                                                {PROMO_TYPE?.[0]?.value === selectedPromoType && (
-                                                                        <InputField
-                                                                                type="select"
-                                                                                label="Elligible Product Code"
-                                                                                name="eligibleProductCode"
-                                                                                multiple={true}
-                                                                                defaultValue={ELLIGIBLE_PRODUCT_CODE?.[0]?.value}
-                                                                                options={ELLIGIBLE_PRODUCT_CODE}
-                                                                                rules={[{ required: true, message: "Please select the eligible product code" }]}
-                                                                        />
-                                                                )}
+
 
 
                                                         </div>

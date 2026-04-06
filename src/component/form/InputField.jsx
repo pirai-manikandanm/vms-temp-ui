@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Form, Input, DatePicker, Select, Upload, Button } from "antd";
-import { FaCloudUploadAlt } from "react-icons/fa";
+import { Form, Input, DatePicker, Select, Upload, Button, Tooltip } from "antd";
+import { FaCloudUploadAlt, FaDownload } from "react-icons/fa";
 
 
 
@@ -21,6 +21,9 @@ const InputField = ({
         multiple = false,
         value,
         width = "300px",
+        downloadTemplate,
+        handleUploadCustomerDetails
+
 }) => {
         const commonInputClass = "!h-10 !rounded-lg";
 
@@ -36,16 +39,27 @@ const InputField = ({
 
         if (type === "upload") {
                 fieldNode = (
-                        <Upload
-                                name={name}
-                                type={type === "number" ? "number" : "text"}
-                                placeholder={placeholder}
-                                className={commonInputClass}
-                                accept={accept}
+                        <div className="flex items-center gap-2">
+                                <Tooltip title="Download Sample Template">
+                                        <Button className="!bg-green-500 !text-white mb-2" icon={<FaDownload />} onClick={() => downloadTemplate()}></Button>
+                                </Tooltip>
+                                <Upload
+                                        name={name}
+                                        placeholder={placeholder}
+                                        className={commonInputClass}
+                                        accept={accept}
+                                        showUploadList={false}
+                                        maxCount={1}
+                                        onChange={(info) => {
+                                                handleUploadCustomerDetails(info)
+                                        }}
 
-                        >
-                                <Button icon={<FaCloudUploadAlt />}>Upload</Button>
-                        </Upload>
+                                >
+                                        <Button icon={<FaCloudUploadAlt />}>Upload</Button>
+
+                                </Upload>
+
+                        </div>
                 );
         }
 
