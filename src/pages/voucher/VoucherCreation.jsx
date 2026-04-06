@@ -402,7 +402,7 @@ const VoucherCreation = () => {
                                                                 {VOUCHER_TYPE?.[0]?.value === selectedVoucherType && (
                                                                         <InputField
                                                                                 type="select"
-                                                                                label="Elligible Product Code"
+                                                                                label="Elligible Product List"
                                                                                 name="eligibleProductCode"
                                                                                 multiple={true}
                                                                                 defaultValue={ELLIGIBLE_PRODUCT_CODE?.[0]?.value}
