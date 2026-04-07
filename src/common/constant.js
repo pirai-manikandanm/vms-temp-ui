@@ -21,13 +21,13 @@ export const PROMO_REWARD_TYPE = [
 
 export const DISPLAY_TAGS = ["OTG", "Kiosk"]
 export const PROMO_TYPE = [
-        { label: "PRODUCT_EXCLUSIVE", value: "PRODUCT_EXCLUSIVE" },
-        { label: "GVM", value: "GVM" },
+        // { label: "PRODUCT_EXCLUSIVE", value: "PRODUCT_EXCLUSIVE" },
+        // { label: "GVM", value: "GVM" },
         { label: "OTG", value: "OTG" },
-        { label: "GIFT", value: "GIFT" },
-        { label: "SAG", value: "SAG" },
-        { label: "REFERAL_CREDIT", value: "REFERAL_CREDIT" },
-        { label: "GBP", value: "GBP" },
+        // { label: "GIFT", value: "GIFT" },
+        // { label: "SAG", value: "SAG" },
+        // { label: "REFERAL_CREDIT", value: "REFERAL_CREDIT" },
+        // { label: "GBP", value: "GBP" },
         { label: "Kiosk", value: "Kiosk" },
 ]
 
@@ -75,6 +75,7 @@ export const VOUCHER_TYPE = [
         { label: "REFERRAL_CREDITS", value: "REFERRAL_CREDITS" },
         { label: "STARTER_PACK", value: "STARTER_PACK" },
         { label: "BIRTHDAY_VOUCHER", value: "BIRTHDAY_VOUCHER" },
+        { label: "SINGLIFE_CREDITS", value: "SINGLIFE_CREDITS" },
 ]
 
 export const VOUCHER_FORM_PREFILL_VALUES = {
@@ -83,7 +84,7 @@ export const VOUCHER_FORM_PREFILL_VALUES = {
         promoCode: "PPTPG02",
         endDate: "2026-03-08",
         seriesCode: "FUNRUN",
-        type: "GVM",
+        type: "",
         seriesName: "FUN RUN",
         maxRedeemLimitPerUser: 1,
         voucherCode: "WK1005",
