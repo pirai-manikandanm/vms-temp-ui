@@ -60,13 +60,14 @@ const VoucherCreation = () => {
       location?.state?.type || VOUCHER_CREATION_TYPE.SINGLIFE;
     const partnerOptions = PARTNERS_OPTIONS[creationType] || [];
     const defaultPromoEntity = partnerOptions?.[0]?.value || "";
-    if (creationType === VOUCHER_CREATION_TYPE.THIRDPARTY) {
-      setVoucherType(
-        VOUCHER_TYPE.filter((item) => item.value !== "SINGLIFE_CREDITS"),
-      );
-    } else {
-      setVoucherType(VOUCHER_TYPE);
-    }
+    //     if (creationType === VOUCHER_CREATION_TYPE.THIRDPARTY) {
+    //       setVoucherType(
+    //         VOUCHER_TYPE.filter((item) => item.value !== "SINGLIFE_CREDITS"),
+    //       );
+    //     } else {
+    //       setVoucherType(VOUCHER_TYPE);
+    //     }
+    setVoucherType(VOUCHER_TYPE);
 
     setVoucherCreationType({
       defaultValue: defaultPromoEntity,

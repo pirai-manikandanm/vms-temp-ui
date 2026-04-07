@@ -69,12 +69,12 @@ export const PARTNER_OPTIONS = [
 
 export const VOUCHER_TYPE = [
         { label: "PRODUCT_EXCLUSIVE", value: "PRODUCT_EXCLUSIVE" },
-        { label: "GIFT_CREDITS", value: "GIFT_CREDITS" },
-        { label: "NEW_TO_APP", value: "NEW_TO_APP" },
-        { label: "NEW_TO_CASHIN", value: "NEW_TO_CASHIN" },
-        { label: "REFERRAL_CREDITS", value: "REFERRAL_CREDITS" },
-        { label: "STARTER_PACK", value: "STARTER_PACK" },
-        { label: "BIRTHDAY_VOUCHER", value: "BIRTHDAY_VOUCHER" },
+        // { label: "GIFT_CREDITS", value: "GIFT_CREDITS" },
+        // { label: "NEW_TO_APP", value: "NEW_TO_APP" },
+        // { label: "NEW_TO_CASHIN", value: "NEW_TO_CASHIN" },
+        // { label: "REFERRAL_CREDITS", value: "REFERRAL_CREDITS" },
+        // { label: "STARTER_PACK", value: "STARTER_PACK" },
+        // { label: "BIRTHDAY_VOUCHER", value: "BIRTHDAY_VOUCHER" },
         { label: "SINGLIFE_CREDITS", value: "SINGLIFE_CREDITS" },
 ]
 
