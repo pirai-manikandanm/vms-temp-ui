@@ -86,6 +86,7 @@ const InputField = ({
         className="!h-10 !w-full !rounded-lg"
         defaultValue={""}
         maxTagCount={1}
+        allowClear
         mode={multiple ? "multiple" : "default"}
         onChange={(value) => {
           if (getValue) {
