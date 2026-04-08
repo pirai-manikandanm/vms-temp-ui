@@ -1,9 +1,9 @@
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-const downloadTemplate = (file_name) => {
+const downloadTemplate = (file_name, isThirdParty) => {
 
-        const data = [
+        const data = isThirdParty ? [
                 {
                         "First Name": "",
                         "Last Name": "",
@@ -11,6 +11,15 @@ const downloadTemplate = (file_name) => {
                         "Email Address": "",
                         "Voucher Amount": ""
 
+                },
+        ] : [
+                {
+
+                        "Mobile Number": "",
+                        "Voucher Link": "",
+                        "Voucher Amount": "",
+                        "Voucher Name": "",
+                        "Expiration Date": ""
                 },
         ];
 

@@ -104,3 +104,8 @@ export const VOUCHER_FORM_PREFILL_VALUES = {
         button: "REDEEM",
         navigation: "Proceed",
 }
+
+
+export const HIDDEN_FIELDS = [
+        "promoEntity", "partner", "customerDetailsExcelFile", "Title", "description", "button", "navigation"
+]

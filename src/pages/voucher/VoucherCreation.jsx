@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Button, Modal, Divider, notification, Collapse } from "antd";
 import dayjs from "dayjs";
 import InputField from "../../component/form/InputField";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   CLASSIFICATION_TYPE,
   ELLIGIBLE_PRODUCT_CODE,
@@ -24,7 +24,7 @@ import _ from "lodash";
 
 const VoucherCreation = () => {
   const location = useLocation();
-
+  const navigate = useNavigate();
   const [voucherCreationType, setVoucherCreationType] = useState({
     defaultValue: "",
     options: [],
@@ -41,7 +41,7 @@ const VoucherCreation = () => {
   const [voucherType, setVoucherType] = useState();
 
   const [customerDetails, setCustomerDetails] = useState(null);
-
+  const [isThirdParty, setIsThirdParty] = useState(false);
   const [form] = Form.useForm();
 
   const formatDate = (dateValue) => {
@@ -56,10 +56,15 @@ const VoucherCreation = () => {
   const todayAsDate = () => new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    const creationType =
-      location?.state?.type || VOUCHER_CREATION_TYPE.SINGLIFE;
+    const creationType = location?.state?.type;
+
+    if (!creationType) {
+      navigate("/");
+    }
+
     const partnerOptions = PARTNERS_OPTIONS[creationType] || [];
     const defaultPromoEntity = partnerOptions?.[0]?.value || "";
+    setIsThirdParty(creationType === VOUCHER_CREATION_TYPE.THIRDPARTY);
     //     if (creationType === VOUCHER_CREATION_TYPE.THIRDPARTY) {
     //       setVoucherType(
     //         VOUCHER_TYPE.filter((item) => item.value !== "SINGLIFE_CREDITS"),
@@ -212,13 +217,15 @@ const VoucherCreation = () => {
     setSelectedUsageType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
   };
 
-  const validatePartnerAndPromoCode = () => {
+  const validatePartnerAndPromoCode = (isThirdParty) => {
     const { partner, promoCode } = form.getFieldsValue([
       "partner",
       "promoCode",
     ]);
-    let fileName = `${partner}_${promoCode}_EmployeeList_${moment().format("DDMMYYYY")}`;
-    if (!partner || !promoCode) {
+    let fileName = !isThirdParty
+      ? `${partner}_${promoCode}_EmployeeList_${moment().format("DDMMYYYY")}`
+      : `${partner}_VoucherList_${moment().format("DDMMYYYY")}`;
+    if (!partner || (!isThirdParty && !promoCode)) {
       notification.error({
         message: "Please check both the partner and promo code inputs",
       });
@@ -227,20 +234,22 @@ const VoucherCreation = () => {
     return { success: true, fileName: fileName };
   };
 
-  const handleTrigerDownloadTemplate = () => {
-    const { fileName, success } = validatePartnerAndPromoCode();
+  const handleTrigerDownloadTemplate = (isThirdParty) => {
+    const { fileName, success } = validatePartnerAndPromoCode(isThirdParty);
 
     if (success) {
-      downloadTemplate(fileName);
+      downloadTemplate(fileName, isThirdParty);
     }
   };
 
   const handleUploadCustomerDetails = (value) => {
+    console.log(value);
     if (value?.file?.status === "error") {
-      const { fileName, success } = validatePartnerAndPromoCode();
+      const { fileName, success } = validatePartnerAndPromoCode(isThirdParty);
+
+      console.log(fileName, success);
 
       if (success) {
-        console.log(value?.file.name, fileName);
         if (value?.file.name !== `${fileName}.xlsx`) {
           notification.error({
             message: `Please upload file with the correct name expected : ${fileName}`,
@@ -262,7 +271,10 @@ const VoucherCreation = () => {
             onFinish={showJsonPreview}
             className="space-y-1"
           >
-            <Collapse defaultActiveKey={[2, 3, 4]} collapsible="icon">
+            <Collapse
+              activeKey={isThirdParty ? [2, 3, 4, 5] : [2, 4, 3]}
+              collapsible="icon"
+            >
               <div className="flex flex-col gap-3 bg-red-500 p-5 text-white md:flex-row md:items-center md:justify-between">
                 <div>
                   <h1 className="text-xl font-bold md:text-2xl">
@@ -320,6 +332,7 @@ const VoucherCreation = () => {
                         },
                       ]}
                     />
+
                     <InputField
                       label="Promo Name"
                       name="promoName"
@@ -415,53 +428,58 @@ const VoucherCreation = () => {
                   </div>
                 </div>
               </Collapse.Panel>
-              <Collapse.Panel
-                key={3}
-                collapsible="disabled"
-                className="!bg-white"
-                header={
-                  <h2 className="text-sm font-semibold uppercase tracking-wide !text-red-500">
-                    Series Configuration
-                  </h2>
-                }
-              >
-                <div className="bg-white p-4 ">
-                  <div className="flex flex-wrap gap-x-4">
-                    <InputField
-                      label="Series Code"
-                      name="seriesCode"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter the series code",
-                        },
-                      ]}
-                    />
-                    <InputField
-                      label="Series Name"
-                      name="seriesName"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter the series name",
-                        },
-                      ]}
-                    />
-                    <InputField
-                      type="number"
-                      label="Max Redeem Limit Per User"
-                      name="maxRedeemLimitPerUser"
-                      defaultValue={1}
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter maximum redeem limit per user",
-                        },
-                      ]}
-                    />
-                  </div>
-                </div>
-              </Collapse.Panel>
+              {!isThirdParty && (
+                <>
+                  <Collapse.Panel
+                    key={3}
+                    collapsible="disabled"
+                    className="!bg-white"
+                    header={
+                      <h2 className="text-sm font-semibold uppercase tracking-wide !text-red-500">
+                        Series Configuration
+                      </h2>
+                    }
+                  >
+                    <div className="bg-white p-4 ">
+                      <div className="flex flex-wrap gap-x-4">
+                        <InputField
+                          label="Series Code"
+                          name="seriesCode"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter the series code",
+                            },
+                          ]}
+                        />
+                        <InputField
+                          label="Series Name"
+                          name="seriesName"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter the series name",
+                            },
+                          ]}
+                        />
+                        <InputField
+                          type="number"
+                          label="Max Redeem Limit Per User"
+                          name="maxRedeemLimitPerUser"
+                          defaultValue={1}
+                          rules={[
+                            {
+                              required: true,
+                              message:
+                                "Please enter maximum redeem limit per user",
+                            },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  </Collapse.Panel>
+                </>
+              )}
               <Collapse.Panel
                 key={4}
                 collapsible="disabled"
@@ -512,7 +530,7 @@ const VoucherCreation = () => {
                             name="customerDetailsExcelFile"
                             accept=".xlsx"
                             downloadTemplate={() =>
-                              handleTrigerDownloadTemplate()
+                              handleTrigerDownloadTemplate(isThirdParty)
                             }
                             rules={[
                               {
@@ -621,12 +639,17 @@ const VoucherCreation = () => {
                       label="Title"
                       name="title"
                       itemClassName="!w-full"
-                      //       rules={[
-                      //         {
-                      //           required: true,
-                      //           message: "Please enter the drawer message title",
-                      //         },
-                      //       ]}
+                      rules={
+                        isThirdParty
+                          ? [
+                              {
+                                required: true,
+                                message:
+                                  "Please enter the drawer message title",
+                              },
+                            ]
+                          : []
+                      }
                     />
 
                     <InputField
@@ -634,36 +657,48 @@ const VoucherCreation = () => {
                       name="description"
                       type="textarea"
                       itemClassName="!w-full"
-                      //       rules={[
-                      //         {
-                      //           required: true,
-                      //           message:
-                      //             "Please enter the drawer message description",
-                      //         },
-                      //       ]}
+                      rules={
+                        isThirdParty
+                          ? [
+                              {
+                                required: true,
+                                message:
+                                  "Please enter the drawer message description",
+                              },
+                            ]
+                          : []
+                      }
                     />
                     <Divider />
                     <InputField
                       label="Button Label"
                       name="button"
-                      //       rules={[
-                      //         {
-                      //           required: true,
-                      //           message:
-                      //             "Please enter the drawer message button text",
-                      //         },
-                      //       ]}
+                      rules={
+                        isThirdParty
+                          ? [
+                              {
+                                required: true,
+                                message:
+                                  "Please enter the drawer message button text",
+                              },
+                            ]
+                          : []
+                      }
                     />
                     <InputField
                       label="Navigation"
                       name="navigation"
-                      //       rules={[
-                      //         {
-                      //           required: true,
-                      //           message:
-                      //             "Please enter the drawer message button text",
-                      //         },
-                      //       ]}
+                      rules={
+                        isThirdParty
+                          ? [
+                              {
+                                required: true,
+                                message:
+                                  "Please enter the drawer message button text",
+                              },
+                            ]
+                          : []
+                      }
                     />
                   </div>
                 </div>

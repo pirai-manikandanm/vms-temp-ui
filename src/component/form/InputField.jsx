@@ -3,6 +3,9 @@ import React from "react";
 import { Form, Input, DatePicker, Select, Upload, Button, Tooltip } from "antd";
 import { FaCloudUploadAlt, FaDownload } from "react-icons/fa";
 
+import { useLocation } from "react-router-dom";
+import { HIDDEN_FIELDS, VOUCHER_CREATION_TYPE } from "../../common/constant";
+
 const InputField = ({
   label,
   name,
@@ -23,6 +26,13 @@ const InputField = ({
   handleUploadCustomerDetails,
 }) => {
   const commonInputClass = "!h-10 !rounded-lg";
+
+  const location = useLocation();
+
+  const isThirdParty =
+    location?.state?.type === VOUCHER_CREATION_TYPE.THIRDPARTY;
+
+  if (!HIDDEN_FIELDS.includes(name) && isThirdParty) return;
 
   let fieldNode = (
     <Input
