@@ -42,6 +42,8 @@ const VoucherCreation = () => {
 
   const [customerDetails, setCustomerDetails] = useState(null);
   const [isThirdParty, setIsThirdParty] = useState(false);
+
+  const [activeKeys, setActiveKeys] = useState([]);
   const [form] = Form.useForm();
 
   const formatDate = (dateValue) => {
@@ -64,7 +66,7 @@ const VoucherCreation = () => {
 
     const partnerOptions = PARTNERS_OPTIONS[creationType] || [];
     const defaultPromoEntity = partnerOptions?.[0]?.value || "";
-    setIsThirdParty(creationType === VOUCHER_CREATION_TYPE.THIRDPARTY);
+
     //     if (creationType === VOUCHER_CREATION_TYPE.THIRDPARTY) {
     //       setVoucherType(
     //         VOUCHER_TYPE.filter((item) => item.value !== "SINGLIFE_CREDITS"),
@@ -90,6 +92,7 @@ const VoucherCreation = () => {
     setSelectedPromoType();
     setSelectedUsageType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
     setSelectedVoucherType(VOUCHER_TYPE?.[0]?.value);
+    setIsThirdParty(creationType === VOUCHER_CREATION_TYPE.THIRDPARTY);
   }, [location?.state?.type, form]);
 
   const buildVoucherJson = (values) => {
@@ -261,6 +264,10 @@ const VoucherCreation = () => {
     }
   };
 
+  useEffect(() => {
+    setActiveKeys(isThirdParty ? [2, 3, 4, 5] : [2, 4, 3]);
+  }, [isThirdParty]);
+
   return (
     <>
       <div className="min-h-screen  p-4 md:p-8   bg-slate-100 w-full">
@@ -272,7 +279,8 @@ const VoucherCreation = () => {
             className="space-y-1"
           >
             <Collapse
-              activeKey={isThirdParty ? [2, 3, 4, 5] : [2, 4, 3]}
+              activeKey={activeKeys}
+              onChange={setActiveKeys}
               collapsible="icon"
             >
               <div className="flex flex-col gap-3 bg-red-500 p-5 text-white md:flex-row md:items-center md:justify-between">
