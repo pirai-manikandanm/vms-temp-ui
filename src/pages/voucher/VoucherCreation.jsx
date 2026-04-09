@@ -1,6 +1,14 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState } from "react";
-import { Form, Button, Modal, Divider, notification, Collapse } from "antd";
+import {
+  Form,
+  Button,
+  Modal,
+  Divider,
+  notification,
+  Collapse,
+  Table,
+} from "antd";
 import dayjs from "dayjs";
 import InputField from "../../component/form/InputField";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,8 +27,8 @@ import {
 } from "../../common/constant";
 import downloadTemplate from "../../common/downloadExcel";
 import moment from "moment";
-import { FaDeleteLeft } from "react-icons/fa6";
 import _ from "lodash";
+import * as XLSX from "xlsx";
 
 const VoucherCreation = () => {
   const location = useLocation();
@@ -40,7 +48,12 @@ const VoucherCreation = () => {
 
   const [voucherType, setVoucherType] = useState();
 
-  const [customerDetails, setCustomerDetails] = useState(null);
+  const [excelData, setExcelData] = useState([]);
+
+  const [customerDetails, setCustomerDetails] = useState({
+    object: {},
+    fileName: null,
+  });
   const [isThirdParty, setIsThirdParty] = useState(false);
 
   const [activeKeys, setActiveKeys] = useState([]);
@@ -162,7 +175,22 @@ const VoucherCreation = () => {
       updatedBy: "System",
     };
 
-    return { promoConfig, seriesConfig };
+    const thirdPartyConfig = {
+      promoEntity: values?.promoEntity || "",
+      partner: values?.partner || "",
+      drawerMessageJson: [
+        {
+          description: parsedDescription,
+          title: values?.title || "",
+        },
+        {
+          button: values?.button || "",
+          navigation: values?.navigation || "",
+        },
+      ],
+    };
+
+    return isThirdParty ? { thirdPartyConfig } : { promoConfig, seriesConfig };
   };
 
   const showJsonPreview = (values) => {
@@ -246,11 +274,8 @@ const VoucherCreation = () => {
   };
 
   const handleUploadCustomerDetails = (value) => {
-    console.log(value);
     if (value?.file?.status === "error") {
       const { fileName, success } = validatePartnerAndPromoCode(isThirdParty);
-
-      console.log(fileName, success);
 
       if (success) {
         if (value?.file.name !== `${fileName}.xlsx`) {
@@ -260,13 +285,54 @@ const VoucherCreation = () => {
           return;
         }
       }
-      setCustomerDetails(fileName);
+      setCustomerDetails({
+        object: value?.file?.originFileObj,
+        fileName: fileName,
+      });
     }
   };
 
   useEffect(() => {
     setActiveKeys(isThirdParty ? [2, 3, 4, 5] : [2, 4, 3]);
   }, [isThirdParty]);
+
+  const handlePreviewCustomerDetails = () => {
+    const file = customerDetails?.object;
+
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    reader.onload = (e) => {
+      const workbook = XLSX.read(e.target.result);
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+      setExcelData(jsonData);
+    };
+  };
+
+  const excelDataColumns = [
+    {
+      title: "Email Address",
+      dataIndex: "Email Address",
+    },
+    {
+      title: "First Name",
+      dataIndex: "First Name",
+    },
+    {
+      title: "Last Name",
+      dataIndex: "Last Name",
+    },
+    {
+      title: "Mobile Number",
+      dataIndex: "Mobile Number",
+    },
+    {
+      title: "Voucher Amount",
+      dataIndex: "Voucher Amount",
+    },
+  ];
 
   return (
     <>
@@ -520,13 +586,28 @@ const VoucherCreation = () => {
                     {ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value ===
                       selectedUsageType && (
                       <>
-                        {customerDetails ? (
-                          <div className="flex items-center gap-2">
-                            <h1>{customerDetails} </h1>
-                            <FaDeleteLeft
-                              className="cursor-pointer text-red-500"
-                              onClick={() => setCustomerDetails(null)}
-                            />
+                        {customerDetails?.fileName ? (
+                          <div className="flex items-center gap-2 border p-4 bg-green-50 border-green-200">
+                            <h1 className="text-sm font-medium text-green-700">
+                              file name: {customerDetails?.fileName}
+                            </h1>
+                            <Button
+                              className="!bg-red-500 !text-white"
+                              onClick={() =>
+                                setCustomerDetails({
+                                  object: {},
+                                  fileName: null,
+                                })
+                              }
+                            >
+                              Delete
+                            </Button>
+                            <Button
+                              className="!bg-blue-500 !text-white"
+                              onClick={handlePreviewCustomerDetails}
+                            >
+                              View
+                            </Button>
                           </div>
                         ) : (
                           <InputField
@@ -716,18 +797,29 @@ const VoucherCreation = () => {
         </div>
       </div>
       <Modal
-        title="Voucher Configuration JSON"
-        open={isJsonPreviewOpen}
+        title={
+          _.isEmpty(excelData)
+            ? "Voucher Configuration JSON"
+            : "Customer Details"
+        }
+        open={isJsonPreviewOpen || !_.isEmpty(excelData)}
         onCancel={() => {
           setIsJsonPreviewOpen(false);
+          setExcelData([]);
         }}
         footer={null}
         width="80%"
         height="80%"
       >
-        <pre className=" overflow-auto rounded-md p-4 text-xs text-slate-800 h-[80vh]">
-          {JSON.stringify(isJsonPreviewOpen, null, 2)}
-        </pre>
+        {_.isEmpty(excelData) ? (
+          <pre className=" overflow-auto rounded-md p-4 text-xs text-slate-800 h-[80vh]">
+            {JSON.stringify(isJsonPreviewOpen, null, 2)}
+          </pre>
+        ) : (
+          <div className="overflow-auto rounded-md p-4 text-xs text-slate-800 h-[80vh]">
+            <Table dataSource={excelData} columns={excelDataColumns} />
+          </div>
+        )}
       </Modal>
     </>
   );
