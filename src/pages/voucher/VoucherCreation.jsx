@@ -180,8 +180,8 @@ const VoucherCreation = () => {
       partner: values?.partner || "",
       drawerMessageJson: [
         {
-          description: parsedDescription,
           title: values?.title || "",
+          description: parsedDescription,
         },
         {
           button: values?.button || "",

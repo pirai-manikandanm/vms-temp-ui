@@ -107,5 +107,5 @@ export const VOUCHER_FORM_PREFILL_VALUES = {
 
 
 export const HIDDEN_FIELDS = [
-        "promoEntity", "partner", "customerDetailsExcelFile", "Title", "description", "button", "navigation"
+        "promoEntity", "partner", "customerDetailsExcelFile", "title", "description", "button", "navigation"
 ]
