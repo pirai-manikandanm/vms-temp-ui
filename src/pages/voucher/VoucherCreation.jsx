@@ -440,7 +440,7 @@ const VoucherCreation = () => {
                       ]}
                     />
                     <InputField
-                      label="Type"
+                      label="Distribution Channel"
                       name="type"
                       type="select"
                       options={PROMO_TYPE}
