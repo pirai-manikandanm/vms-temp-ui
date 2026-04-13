@@ -176,7 +176,6 @@ const VoucherCreation = () => {
     };
 
     const thirdPartyConfig = {
-      promoEntity: values?.promoEntity || "",
       partner: values?.partner || "",
       drawerMessageJson: [
         {
