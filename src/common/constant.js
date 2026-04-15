@@ -6,7 +6,7 @@ export const VOUCHER_CREATION_TYPE = {
 
 export const PROMO_ENTITY_OPTIONS = {
         [VOUCHER_CREATION_TYPE.THIRDPARTY]: [
-                { label: "Glope", value: "Glope" }
+                { label: "Globe", value: "Globe" }
         ],
         [VOUCHER_CREATION_TYPE.SINGLIFE]: [
                 { label: "Singlife", value: "Singlife" },
