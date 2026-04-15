@@ -3,7 +3,7 @@ import { saveAs } from "file-saver";
 
 const downloadTemplate = (file_name, isThirdParty) => {
 
-        const data = isThirdParty ? [
+        const data = !isThirdParty ? [
                 {
                         "First Name": "",
                         "Last Name": "",

@@ -1,10 +1,25 @@
 export const VOUCHER_CREATION_TYPE = {
         SINGLIFE: 'SINGLIFE',
         THIRDPARTY: 'THIRD_PARTY',
+        PARTNERISSUED: 'PARTNER_ISSUED'
+}
+
+export const PROMO_ENTITY_OPTIONS = {
+        [VOUCHER_CREATION_TYPE.THIRDPARTY]: [
+                { label: "Glope", value: "Glope" }
+        ],
+        [VOUCHER_CREATION_TYPE.SINGLIFE]: [
+                { label: "Singlife", value: "Singlife" },
+        ],
 }
 
 export const PARTNERS_OPTIONS = {
         [VOUCHER_CREATION_TYPE.THIRDPARTY]: [
+                { label: "Maya", value: "Maya" },
+                { label: "xyz", value: "xyz" },
+                { label: "abc", value: "abc" },
+        ],
+        [VOUCHER_CREATION_TYPE.PARTNERISSUED]: [
                 { label: "Maya", value: "Maya" },
                 { label: "xyz", value: "xyz" },
                 { label: "abc", value: "abc" },

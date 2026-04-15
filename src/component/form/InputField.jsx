@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Form, Input, DatePicker, Select, Upload, Button, Tooltip } from "antd";
+import { Form, Input, DatePicker, Select, Upload, Button, Tooltip, Checkbox } from "antd";
 import { FaCloudUploadAlt, FaDownload } from "react-icons/fa";
 
 import { useLocation } from "react-router-dom";
@@ -30,7 +30,7 @@ const InputField = ({
   const location = useLocation();
 
   const isThirdParty =
-    location?.state?.type === VOUCHER_CREATION_TYPE.THIRDPARTY;
+    location?.state?.type === VOUCHER_CREATION_TYPE.PARTNERISSUED;
 
   if (!HIDDEN_FIELDS.includes(name) && isThirdParty) return;
 
@@ -43,6 +43,17 @@ const InputField = ({
       className={commonInputClass}
     />
   );
+
+  if (type === "checkbox") {
+    fieldNode = (
+      <Checkbox
+        name={name}
+        defaultChecked={defaultValue}
+      >
+        {label}
+      </Checkbox>
+    )
+  }
 
   if (type === "upload") {
     fieldNode = (
@@ -117,7 +128,7 @@ const InputField = ({
 
   return (
     <Form.Item
-      label={label}
+      label={type === "checkbox" ? "" : label}
       name={name}
       rules={rules}
       className={`!mb-3 ${itemClassName} !w-[${width}]`.trim()}

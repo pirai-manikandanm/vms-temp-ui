@@ -8,6 +8,7 @@ import {
   notification,
   Collapse,
   Table,
+  Checkbox,
 } from "antd";
 import dayjs from "dayjs";
 import InputField from "../../component/form/InputField";
@@ -24,6 +25,7 @@ import {
   VOUCHER_FORM_PREFILL_VALUES,
   DISPLAY_TAGS,
   PARTNER_OPTIONS,
+  PROMO_ENTITY_OPTIONS
 } from "../../common/constant";
 import downloadTemplate from "../../common/downloadExcel";
 import moment from "moment";
@@ -34,8 +36,10 @@ const VoucherCreation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [voucherCreationType, setVoucherCreationType] = useState({
-    defaultValue: "",
-    options: [],
+    defaultPromoEntityValue: "",
+    defaultPartnerValue: "",
+    promoEntityOptions: [],
+    partnerOptions: [],
   });
 
   const [selectedVoucherType, setSelectedVoucherType] = useState(
@@ -78,7 +82,11 @@ const VoucherCreation = () => {
     }
 
     const partnerOptions = PARTNERS_OPTIONS[creationType] || [];
-    const defaultPromoEntity = partnerOptions?.[0]?.value || "";
+    const promoEntityOptions = PROMO_ENTITY_OPTIONS[creationType] || [];
+    console.log("partnerOptions", partnerOptions);
+
+    const defaultPromoEntity = promoEntityOptions?.[0]?.value || "";
+    const defaultPartner = partnerOptions?.[0]?.value || "";
 
     //     if (creationType === VOUCHER_CREATION_TYPE.THIRDPARTY) {
     //       setVoucherType(
@@ -90,8 +98,10 @@ const VoucherCreation = () => {
     setVoucherType(VOUCHER_TYPE);
 
     setVoucherCreationType({
-      defaultValue: defaultPromoEntity,
-      options: partnerOptions,
+      defaultPromoEntityValue: defaultPromoEntity,
+      defaultPartnerValue: defaultPartner,
+      partnerOptions: partnerOptions,
+      promoEntityOptions: promoEntityOptions,
     });
     form.setFieldsValue({
       promoEntity: defaultPromoEntity,
@@ -105,7 +115,8 @@ const VoucherCreation = () => {
     setSelectedPromoType();
     setSelectedUsageType(ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value);
     setSelectedVoucherType(VOUCHER_TYPE?.[0]?.value);
-    setIsThirdParty(creationType === VOUCHER_CREATION_TYPE.THIRDPARTY);
+    setIsThirdParty(creationType === VOUCHER_CREATION_TYPE.PARTNERISSUED);
+
   }, [location?.state?.type, form]);
 
   const buildVoucherJson = (values) => {
@@ -150,6 +161,7 @@ const VoucherCreation = () => {
       display_tags: DISPLAY_TAGS.includes(values?.type),
       voucherConfig: {
         amount: Number(values?.amount || 0),
+        testVoucherAmount: Number(values?.testVoucherAmount || 0),
         assignmentExplicity: values?.assignmentExplicity || "",
         category: "G",
         classification:
@@ -253,7 +265,7 @@ const VoucherCreation = () => {
       "promoCode",
     ]);
     let fileName = !isThirdParty
-      ? `${partner}_${promoCode}_EmployeeList_${moment().format("DDMMYYYY")}`
+      ? `${partner}_${promoCode}_CustomerList_${moment().format("DDMMYYYY")}`
       : `${partner}_VoucherList_${moment().format("DDMMYYYY")}`;
     if (!partner || (!isThirdParty && !promoCode)) {
       notification.error({
@@ -380,6 +392,59 @@ const VoucherCreation = () => {
                 </div>
               </div>
 
+              {!isThirdParty && (
+                <>
+                  <Collapse.Panel
+                    key={3}
+                    collapsible="disabled"
+                    className="!bg-white"
+                    header={
+                      <h2 className="text-sm font-semibold uppercase tracking-wide !text-red-500">
+                        Series Configuration
+                      </h2>
+                    }
+                  >
+                    <div className="bg-white p-4 ">
+                      <div className="flex flex-wrap gap-x-4">
+                        <InputField
+                          label="Series Code"
+                          name="seriesCode"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter the series code",
+                            },
+                          ]}
+                        />
+                        <InputField
+                          label="Series Name"
+                          name="seriesName"
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please enter the series name",
+                            },
+                          ]}
+                        />
+                        <InputField
+                          type="number"
+                          label="Max Redeem Limit Per User"
+                          name="maxRedeemLimitPerUser"
+                          defaultValue={1}
+                          rules={[
+                            {
+                              required: selectedUsageType !== "1:M",
+                              message:
+                                "Please enter maximum redeem limit per user",
+                            },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  </Collapse.Panel>
+                </>
+              )}
+
               <Collapse.Panel
                 collapsible="disabled"
                 className="!bg-white"
@@ -397,7 +462,7 @@ const VoucherCreation = () => {
                       name="promoEntity"
                       type="select"
                       defaultValue={voucherCreationType?.defaultValue}
-                      options={voucherCreationType?.options}
+                      options={voucherCreationType?.promoEntityOptions}
                       rules={[
                         {
                           required: true,
@@ -417,24 +482,24 @@ const VoucherCreation = () => {
                       ]}
                     />
                     <InputField
-                      type="select"
-                      label="Partner"
-                      name="partner"
-                      options={PARTNER_OPTIONS}
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select the partner",
-                        },
-                      ]}
-                    />
-                    <InputField
                       label="Promo Code"
                       name="promoCode"
                       rules={[
                         {
                           required: true,
                           message: "Please enter the promo code",
+                        },
+                      ]}
+                    />
+                    <InputField
+                      type="select"
+                      label="Partner"
+                      name="partner"
+                      options={voucherCreationType?.partnerOptions}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select the partner",
                         },
                       ]}
                     />
@@ -501,58 +566,7 @@ const VoucherCreation = () => {
                   </div>
                 </div>
               </Collapse.Panel>
-              {!isThirdParty && (
-                <>
-                  <Collapse.Panel
-                    key={3}
-                    collapsible="disabled"
-                    className="!bg-white"
-                    header={
-                      <h2 className="text-sm font-semibold uppercase tracking-wide !text-red-500">
-                        Series Configuration
-                      </h2>
-                    }
-                  >
-                    <div className="bg-white p-4 ">
-                      <div className="flex flex-wrap gap-x-4">
-                        <InputField
-                          label="Series Code"
-                          name="seriesCode"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter the series code",
-                            },
-                          ]}
-                        />
-                        <InputField
-                          label="Series Name"
-                          name="seriesName"
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please enter the series name",
-                            },
-                          ]}
-                        />
-                        <InputField
-                          type="number"
-                          label="Max Redeem Limit Per User"
-                          name="maxRedeemLimitPerUser"
-                          defaultValue={1}
-                          rules={[
-                            {
-                              required: true,
-                              message:
-                                "Please enter maximum redeem limit per user",
-                            },
-                          ]}
-                        />
-                      </div>
-                    </div>
-                  </Collapse.Panel>
-                </>
-              )}
+
               <Collapse.Panel
                 key={4}
                 collapsible="disabled"
@@ -584,53 +598,53 @@ const VoucherCreation = () => {
                     />
                     {ASSIGNMENT_EXPLICITY_TYPE?.[0]?.value ===
                       selectedUsageType && (
-                      <>
-                        {customerDetails?.fileName ? (
-                          <div className="flex items-center gap-2 border p-4 bg-green-50 border-green-200">
-                            <h1 className="text-sm font-medium text-green-700">
-                              file name: {customerDetails?.fileName}
-                            </h1>
-                            <Button
-                              className="!bg-red-500 !text-white"
-                              onClick={() =>
-                                setCustomerDetails({
-                                  object: {},
-                                  fileName: null,
-                                })
+                        <>
+                          {customerDetails?.fileName ? (
+                            <div className="flex items-center gap-2 border p-4 bg-green-50 border-green-200">
+                              <h1 className="text-sm font-medium text-green-700">
+                                file name: {customerDetails?.fileName}
+                              </h1>
+                              <Button
+                                className="!bg-red-500 !text-white"
+                                onClick={() =>
+                                  setCustomerDetails({
+                                    object: {},
+                                    fileName: null,
+                                  })
+                                }
+                              >
+                                Delete
+                              </Button>
+                              <Button
+                                className="!bg-blue-500 !text-white"
+                                onClick={handlePreviewCustomerDetails}
+                              >
+                                View
+                              </Button>
+                            </div>
+                          ) : (
+                            <InputField
+                              type="upload"
+                              handleUploadCustomerDetails={(value) =>
+                                handleUploadCustomerDetails(value)
                               }
-                            >
-                              Delete
-                            </Button>
-                            <Button
-                              className="!bg-blue-500 !text-white"
-                              onClick={handlePreviewCustomerDetails}
-                            >
-                              View
-                            </Button>
-                          </div>
-                        ) : (
-                          <InputField
-                            type="upload"
-                            handleUploadCustomerDetails={(value) =>
-                              handleUploadCustomerDetails(value)
-                            }
-                            label="Upload Customer Details Excel file"
-                            name="customerDetailsExcelFile"
-                            accept=".xlsx"
-                            downloadTemplate={() =>
-                              handleTrigerDownloadTemplate(isThirdParty)
-                            }
-                            rules={[
-                              {
-                                required: true,
-                                message:
-                                  "Please upload the customer details excel file",
-                              },
-                            ]}
-                          />
-                        )}
-                      </>
-                    )}
+                              label="Upload Customer Details Excel file"
+                              name="customerDetailsExcelFile"
+                              accept=".xlsx"
+                              downloadTemplate={() =>
+                                handleTrigerDownloadTemplate(isThirdParty)
+                              }
+                              rules={[
+                                {
+                                  required: true,
+                                  message:
+                                    "Please upload the customer details excel file",
+                                },
+                              ]}
+                            />
+                          )}
+                        </>
+                      )}
                     <InputField
                       type="select"
                       label="Voucher Type"
@@ -703,8 +717,27 @@ const VoucherCreation = () => {
                       defaultValue={1}
                       rules={[
                         {
-                          required: true,
+                          required: selectedUsageType !== "1:M",
                           message: "Please enter the redeem max limit",
+                        },
+                      ]}
+                      type="number"
+                    />
+                    <div className="flex items-center gap-2 !w-[300px]">
+                      <InputField
+                        type="checkbox"
+                        name="testVoucherGeneration"
+                        defaultValue={true}
+                        label="Test voucher generation"
+                      />
+                    </div>
+                    <InputField
+                      label="Test Voucher Amount"
+                      name="testVoucherAmount"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter the test voucher amount",
                         },
                       ]}
                       type="number"
@@ -730,12 +763,12 @@ const VoucherCreation = () => {
                       rules={
                         isThirdParty
                           ? [
-                              {
-                                required: true,
-                                message:
-                                  "Please enter the drawer message title",
-                              },
-                            ]
+                            {
+                              required: true,
+                              message:
+                                "Please enter the drawer message title",
+                            },
+                          ]
                           : []
                       }
                     />
@@ -748,12 +781,12 @@ const VoucherCreation = () => {
                       rules={
                         isThirdParty
                           ? [
-                              {
-                                required: true,
-                                message:
-                                  "Please enter the drawer message description",
-                              },
-                            ]
+                            {
+                              required: true,
+                              message:
+                                "Please enter the drawer message description",
+                            },
+                          ]
                           : []
                       }
                     />
@@ -764,12 +797,12 @@ const VoucherCreation = () => {
                       rules={
                         isThirdParty
                           ? [
-                              {
-                                required: true,
-                                message:
-                                  "Please enter the drawer message button text",
-                              },
-                            ]
+                            {
+                              required: true,
+                              message:
+                                "Please enter the drawer message button text",
+                            },
+                          ]
                           : []
                       }
                     />
@@ -779,12 +812,12 @@ const VoucherCreation = () => {
                       rules={
                         isThirdParty
                           ? [
-                              {
-                                required: true,
-                                message:
-                                  "Please enter the drawer message button text",
-                              },
-                            ]
+                            {
+                              required: true,
+                              message:
+                                "Please enter the drawer message button text",
+                            },
+                          ]
                           : []
                       }
                     />
